@@ -28,23 +28,23 @@
         center: [-122.420679, 37.772537],
         zoom: 12
       });
-
+    
       var url = window.location.href.split('?')[0];
       var marker = new mapboxgl.Marker();
       map.on('load', function () {
         navigator.geolocation.watchPosition(function (position) {
           var lng = position.coords.longitude;
           var lat = position.coords.latitude;
-          var urlParams = new URLSearchParams(window.location.search);
-          if (!urlParams.has('lat') || !urlParams.has('lng')) {
-            url += '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6);
-          }
+          var timestamp = new Date().getTime();
+          url = window.location.href.split('?')[0] + '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6) + '&timestamp=' + timestamp;
           marker.setLngLat([lng, lat])
             .addTo(map);
           map.flyTo({ center: [lng, lat], zoom: 14 });
           document.getElementById('url').value = url;
         });
       });
+    </script>
+    
     </script>
   </body>
 </html>
