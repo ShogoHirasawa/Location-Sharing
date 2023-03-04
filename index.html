@@ -21,29 +21,63 @@
       <input id='url' type='text' readonly />
     </div>
     <script>
-      mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvZ29oaXJhc2F3YSIsImEiOiJjazFhbzVrMG0yNmxjM2xuaTBmM3h0dW4wIn0.Bxjy09jy_cwOQVexF1xBfg';
-      var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/shogohirasawa/cl4j827v7000h15nrbum0t2x6',
-        center: [-122.420679, 37.772537],
-        zoom: 12
-      });
-    
-      var url = window.location.href.split('?')[0];
-      var marker = new mapboxgl.Marker();
-      map.on('load', function () {
-        navigator.geolocation.watchPosition(function (position) {
-          var lng = position.coords.longitude;
-          var lat = position.coords.latitude;
-          var timestamp = new Date().getTime();
-          url = window.location.href.split('?')[0] + '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6) + '&timestamp=' + timestamp;
-          marker.setLngLat([lng, lat])
-            .addTo(map);
-          map.flyTo({ center: [lng, lat], zoom: 14 });
-          document.getElementById('url').value = url;
-        });
-      });
-    </script>
+  mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvZ29oaXJhc2F3YSIsImEiOiJjazFhbzVrMG0yNmxjM2xuaTBmM3h0dW4wIn0.Bxjy09jy_cwOQVexF1xBfg';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/shogohirasawa/cl4j827v7000h15nrbum0t2x6',
+    center: [139.767052, 35.681167],
+    zoom: 12
+  });
+
+  var marker = new mapboxgl.Marker();
+  var sharing = false;
+  var url = '';
+
+  function startSharing() {
+    sharing = true;
+    var startTime = new Date().getTime();
+    var timer = setInterval(function() {
+      var elapsed = new Date().getTime() - startTime;
+      if (elapsed >= 3600000) {
+        stopSharing();
+      } else {
+        updateUrl();
+      }
+    }, 5000);
+  }
+
+  function stopSharing() {
+    sharing = false;
+    clearInterval(timer);
+    url = '';
+    marker.remove();
+    map.flyTo({ center: [139.767052, 35.681167], zoom: 12 });
+    document.getElementById('url').value = '';
+  }
+
+  function updateUrl() {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var lng = position.coords.longitude;
+      var lat = position.coords.latitude;
+      var timestamp = new Date().getTime();
+      if (!url) {
+        url = window.location.href.split('?')[0] + '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6) + '&timestamp=' + timestamp;
+      } else {
+        url = url.split('&timestamp=')[0] + '&timestamp=' + timestamp;
+      }
+      marker.setLngLat([lng, lat])
+        .addTo(map);
+      map.flyTo({ center: [lng, lat], zoom: 14 });
+      document.getElementById('url').value = url;
+    });
+  }
+
+  map.on('load', function () {
+    updateUrl();
+    startSharing();
+  });
+</script>
+
     
     </script>
   </body>
