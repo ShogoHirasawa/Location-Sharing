@@ -87,18 +87,16 @@
       <input id="url" type="text" readonly />
     </div>
     <div id="help-window">
-      <h1>1hour-LocationShare</h1>
+      <h1>リアルタイム位置共有</h1>
       <p>
-        このアプリは、リアルタイムの自分の位置情報をURLを他の人と共有することで、自分の位置情報を共有できます。
+        このアプリケーションでは、現在の位置情報を共有することができます。以下の手順に従って、共有を開始してください。
       </p>
-      <p>
-        サイトにアクセスした際に位置情報の許可を求められるので、許可をお願いします。
-      </p>
-      <h2>使い方</h2>
+      <h2>手順</h2>
       <ol>
         <li>地図を拡大/縮小し、自分の現在位置を確認します。</li>
+        <li>「共有開始」ボタンをクリックします。</li>
         <li>URL欄に表示されるURLをコピーし、他の人と共有します。</li>
-        <li>共有した位置情報は１時間立つと自動的に共有が解除されます。</li>
+        <li>共有を終了する場合は、「共有終了」ボタンをクリックします。</li>
       </ol>
       <div class="close-button">X</div>
     </div>
@@ -117,14 +115,8 @@
 
       function startSharing() {
         sharing = true;
-        var startTime = new Date().getTime();
         var timer = setInterval(function () {
-          var elapsed = new Date().getTime() - startTime;
-          if (elapsed >= 3600000) {
-            stopSharing();
-          } else {
-            updateUrl();
-          }
+          updateUrl();
         }, 5000);
       }
 
@@ -142,21 +134,20 @@
           var lng = position.coords.longitude;
           var lat = position.coords.latitude;
           var timestamp = new Date().getTime();
-          if (!url) {
-            url =
-              window.location.href.split("?")[0] +
-              "?lat=" +
-              lat.toFixed(6) +
-              "&lng=" +
-              lng.toFixed(6) +
-              "&timestamp=" +
-              timestamp;
-          } else {
-            url = url.split("&timestamp=")[0] + "&timestamp=" + timestamp;
+          var newUrl =
+            window.location.href.split("?")[0] +
+            "?lat=" +
+            lat.toFixed(6) +
+            "&lng=" +
+            lng.toFixed(6) +
+            "&timestamp=" +
+            timestamp;
+          if (newUrl !== url) {
+            url = newUrl;
+            marker.setLngLat([lng, lat]).addTo(map);
+            map.flyTo({ center: [lng, lat], zoom: 14 });
+            document.getElementById("url").value = url;
           }
-          marker.setLngLat([lng, lat]).addTo(map);
-          map.flyTo({ center: [lng, lat], zoom: 14 });
-          document.getElementById("url").value = url;
         });
       }
 
@@ -179,11 +170,20 @@
       window.addEventListener("resize", function () {
         if (window.innerWidth >= 768) {
           document.body.classList.remove("mobile");
-        } else {
-          document.body.classList.add("mobile");
-        }
+        } else document.body.classList.add("mobile");
+      }); // Add event listener to start sharing button
+      var startButton = document.getElementById("start-sharing");
+      startButton.addEventListener("click", function () {
+        startSharing();
+        document.getElementById("url-window").style.display = "block";
       });
-      // Add event listener to start sharing button
+
+      // Add event listener to stop sharing button
+      var stopButton = document.getElementById("stop-sharing");
+      stopButton.addEventListener("click", function () {
+        stopSharing();
+        document.getElementById("url-window").style.display = "none";
+      }); // Add event listener to start sharing button
       var startButton = document.getElementById("start-sharing");
       startButton.addEventListener("click", function () {
         startSharing();
