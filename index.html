@@ -1,84 +1,164 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset='utf-8' />
+    <meta charset="utf-8" />
     <title>Real-time Location Sharing</title>
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
     <style>
-      body { margin: 0; padding: 0; }
-      #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-      #url-window { position: fixed; top: 20px; right: 20px; width: 300px; height: 50px; background-color: white; padding: 10px; }
-      #url { font-size: 14px; }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      #url-window {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 300px;
+        height: 50px;
+        background-color: white;
+        padding: 10px;
+      }
+      #url {
+        font-size: 14px;
+      }
+      #help-window {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 400px;
+        height: 300px;
+        background-color: white;
+        padding: 10px;
+        z-index: 999;
+      }
+      #help-window .close-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
-    <div id='map'></div>
-    <div id='url-window'>
+    <div id="map"></div>
+    <div id="url-window">
       <span>Share this URL with others:</span>
       <br />
-      <input id='url' type='text' readonly />
+      <input id="url" type="text" readonly />
+    </div>
+    <div id="help-window">
+      <h1>Real-time Location Sharing</h1>
+      <p>
+        This is a real-time location sharing application. You can share your
+        current location with others by sharing the URL displayed in the upper
+        right corner.
+      </p>
+      <h2>How to Use</h2>
+      <ol>
+        <li>
+          Click on the "Start Sharing" button to start sharing your location.
+        </li>
+        <li>
+          The URL for sharing will be displayed in the URL box in the upper
+          right corner.
+        </li>
+        <li>
+          Share this URL with others to allow them to track your location in
+          real-time.
+        </li>
+        <li>
+          Click on the "Stop Sharing" button to stop sharing your location.
+        </li>
+      </ol>
+      <div class="close-button">×</div>
     </div>
     <script>
-  mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvZ29oaXJhc2F3YSIsImEiOiJjazFhbzVrMG0yNmxjM2xuaTBmM3h0dW4wIn0.Bxjy09jy_cwOQVexF1xBfg';
-  var map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/shogohirasawa/cl4j827v7000h15nrbum0t2x6',
-    center: [139.767052, 35.681167],
-    zoom: 12
-  });
+      mapboxgl.accessToken =
+        "pk.eyJ1Ijoic2hvZ29oaXJhc2F3YSIsImEiOiJjazFhbzVrMG0yNmxjM2xuaTBmM3h0dW4wIn0.Bxjy09jy_cwOQVexF1xBfg";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/shogohirasawa/cl4j827v7000h15nrbum0t2x6",
+        center: [139.767052, 35.681167],
+        zoom: 12,
+      });
 
-  var marker = new mapboxgl.Marker();
-  var sharing = false;
-  var url = '';
+      var marker = new mapboxgl.Marker();
+      var sharing = false;
+      var url = "";
 
-  function startSharing() {
-    sharing = true;
-    var startTime = new Date().getTime();
-    var timer = setInterval(function() {
-      var elapsed = new Date().getTime() - startTime;
-      if (elapsed >= 3600000) {
-        stopSharing();
-      } else {
+      function startSharing() {
+        sharing = true;
+        var startTime = new Date().getTime();
+        var timer = setInterval(function () {
+          var elapsed = new Date().getTime() - startTime;
+          if (elapsed >= 3600000) {
+            stopSharing();
+          } else {
+            updateUrl();
+          }
+        }, 5000);
+      }
+
+      function stopSharing() {
+        sharing = false;
+        clearInterval(timer);
+        url = "";
+        marker.remove();
+        map.flyTo({ center: [139.767052, 35.681167], zoom: 12 });
+        document.getElementById("url").value = "";
+      }
+
+      function updateUrl() {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          var lng = position.coords.longitude;
+          var lat = position.coords.latitude;
+          var timestamp = new Date().getTime();
+          if (!url) {
+            url =
+              window.location.href.split("?")[0] +
+              "?lat=" +
+              lat.toFixed(6) +
+              "&lng=" +
+              lng.toFixed(6) +
+              "&timestamp=" +
+              timestamp;
+          } else {
+            url = url.split("&timestamp=")[0] + "&timestamp=" + timestamp;
+          }
+          marker.setLngLat([lng, lat]).addTo(map);
+          map.flyTo({ center: [lng, lat], zoom: 14 });
+          document.getElementById("url").value = url;
+        });
+      }
+
+      map.on("load", function () {
         updateUrl();
-      }
-    }, 5000);
-  }
+        startSharing();
+      });
 
-  function stopSharing() {
-    sharing = false;
-    clearInterval(timer);
-    url = '';
-    marker.remove();
-    map.flyTo({ center: [139.767052, 35.681167], zoom: 12 });
-    document.getElementById('url').value = '';
-  }
-
-  function updateUrl() {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      var lng = position.coords.longitude;
-      var lat = position.coords.latitude;
-      var timestamp = new Date().getTime();
-      if (!url) {
-        url = window.location.href.split('?')[0] + '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6) + '&timestamp=' + timestamp;
-      } else {
-        url = url.split('&timestamp=')[0] + '&timestamp=' + timestamp;
-      }
-      marker.setLngLat([lng, lat])
-        .addTo(map);
-      map.flyTo({ center: [lng, lat], zoom: 14 });
-      document.getElementById('url').value = url;
-    });
-  }
-
-  map.on('load', function () {
-    updateUrl();
-    startSharing();
-  });
-</script>
-
-    
+      // Add event listener to show/hide help window
+      var helpWindow = document.getElementById("help-window");
+      var closeButton = helpWindow.querySelector(".close-button");
+      closeButton.addEventListener("click", function () {
+        helpWindow.style.display = "none";
+      });
+      window.addEventListener("load", function () {
+        helpWindow.style.display = "block";
+      });
     </script>
   </body>
 </html>
