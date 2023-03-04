@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>Real-time Location Sharing</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+      body { margin: 0; padding: 0; }
+      #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+      #url-window { position: fixed; top: 20px; right: 20px; width: 300px; height: 50px; background-color: white; padding: 10px; }
+      #url { font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div id='map'></div>
+    <div id='url-window'>
+      <span>Share this URL with others:</span>
+      <br />
+      <input id='url' type='text' readonly />
+    </div>
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvZ29oaXJhc2F3YSIsImEiOiJjazFhbzVrMG0yNmxjM2xuaTBmM3h0dW4wIn0.Bxjy09jy_cwOQVexF1xBfg';
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/shogohirasawa/cl4j827v7000h15nrbum0t2x6',
+        center: [-122.420679, 37.772537],
+        zoom: 12
+      });
+
+      var url = window.location.href.split('?')[0];
+      var marker = new mapboxgl.Marker();
+      map.on('load', function () {
+        navigator.geolocation.watchPosition(function (position) {
+          var lng = position.coords.longitude;
+          var lat = position.coords.latitude;
+          var urlParams = new URLSearchParams(window.location.search);
+          if (!urlParams.has('lat') || !urlParams.has('lng')) {
+            url += '?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6);
+          }
+          marker.setLngLat([lng, lat])
+            .addTo(map);
+          map.flyTo({ center: [lng, lat], zoom: 14 });
+          document.getElementById('url').value = url;
+        });
+      });
+    </script>
+  </body>
+</html>
