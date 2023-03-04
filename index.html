@@ -2,11 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Real-time Location Sharing</title>
-    <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
-    />
+    <title>リアルタイム位置共有</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css"
@@ -16,34 +13,55 @@
       body {
         margin: 0;
         padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
       }
       #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
+        flex: 1;
+        position: relative;
       }
       #url-window {
         position: fixed;
-        top: 20px;
+        bottom: 20px;
+        left: 20px;
         right: 20px;
-        width: 300px;
-        height: 50px;
+        height: 60px;
         background-color: white;
         padding: 10px;
       }
       #url {
-        font-size: 14px;
+        width: 100%;
+        font-size: 16px;
       }
       #help-window {
         position: fixed;
-        top: 20px;
-        left: 20px;
-        width: 400px;
-        height: 300px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        height: 70%;
+        max-height: 600px;
         background-color: white;
         padding: 10px;
         z-index: 999;
+        overflow-y: scroll;
+        display: none;
+      }
+      #help-window h1 {
+        font-size: 24px;
+      }
+      #help-window h2 {
+        font-size: 20px;
+      }
+      #help-window p {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      #help-window ol {
+        margin-left: 20px;
       }
       #help-window .close-button {
         position: absolute;
@@ -51,40 +69,38 @@
         right: 5px;
         cursor: pointer;
       }
+      @media screen and (min-width: 768px) {
+        #url-window {
+          width: 300px;
+          left: auto;
+          right: 20px;
+          bottom: 20px;
+        }
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
     <div id="url-window">
-      <span>Share this URL with others:</span>
+      <span>他の人と共有するためのURL:</span>
       <br />
       <input id="url" type="text" readonly />
     </div>
     <div id="help-window">
-      <h1>Real-time Location Sharing</h1>
+      <h1>1hour-LocationShare</h1>
       <p>
-        This is a real-time location sharing application. You can share your
-        current location with others by sharing the URL displayed in the upper
-        right corner.
+        このアプリは、リアルタイムの自分の位置情報をURLを他の人と共有することで、自分の位置情報を共有できます。
       </p>
-      <h2>How to Use</h2>
+      <p>
+        サイトにアクセスした際に位置情報の許可を求められるので、許可をお願いします。
+      </p>
+      <h2>使い方</h2>
       <ol>
-        <li>
-          Click on the "Start Sharing" button to start sharing your location.
-        </li>
-        <li>
-          The URL for sharing will be displayed in the URL box in the upper
-          right corner.
-        </li>
-        <li>
-          Share this URL with others to allow them to track your location in
-          real-time.
-        </li>
-        <li>
-          Click on the "Stop Sharing" button to stop sharing your location.
-        </li>
+        <li>地図を拡大/縮小し、自分の現在位置を確認します。</li>
+        <li>URL欄に表示されるURLをコピーし、他の人と共有します。</li>
+        <li>共有した位置情報は１時間立つと自動的に共有が解除されます。</li>
       </ol>
-      <div class="close-button">×</div>
+      <div class="close-button">X</div>
     </div>
     <script>
       mapboxgl.accessToken =
@@ -95,7 +111,6 @@
         center: [139.767052, 35.681167],
         zoom: 12,
       });
-
       var marker = new mapboxgl.Marker();
       var sharing = false;
       var url = "";
@@ -158,6 +173,28 @@
       });
       window.addEventListener("load", function () {
         helpWindow.style.display = "block";
+      });
+
+      // Update UI on window resize
+      window.addEventListener("resize", function () {
+        if (window.innerWidth >= 768) {
+          document.body.classList.remove("mobile");
+        } else {
+          document.body.classList.add("mobile");
+        }
+      });
+      // Add event listener to start sharing button
+      var startButton = document.getElementById("start-sharing");
+      startButton.addEventListener("click", function () {
+        startSharing();
+        document.getElementById("url-window").style.display = "block";
+      });
+
+      // Add event listener to stop sharing button
+      var stopButton = document.getElementById("stop-sharing");
+      stopButton.addEventListener("click", function () {
+        stopSharing();
+        document.getElementById("url-window").style.display = "none";
       });
     </script>
   </body>
